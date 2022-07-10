@@ -1,0 +1,14 @@
+server:
+  port: 1234
+  log:
+    level: debug
+
+auth:
+  issuer: http://localhost:8080/auth/realms/chatty-realm
+  client_id: chatty
+  secret_id: Ze5R2eT7snIMWwHvFqodLnMLUMOOO0WT
+  redirect_url: http://localhost:1234/callback
+  state: chatty
+
+database:
+  password: postgres

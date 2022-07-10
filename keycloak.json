@@ -1,0 +1,10 @@
+{
+  "realm": "chatty-realm",
+  "auth-server-url": "http://localhost:8080/auth/",
+  "ssl-required": "none",
+  "resource": "chatty",
+  "credentials": {
+    "secret": "Ze5R2eT7snIMWwHvFqodLnMLUMOOO0WT"
+  },
+  "confidential-port": 0
+}
