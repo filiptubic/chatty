@@ -2,9 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
 import UserService from './services/UserService';
-import HttpService from './services/ChattyService';
+import ChattyService from './services/ChattyService';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const render = () => root.render(
@@ -13,15 +12,5 @@ const render = () => root.render(
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
-
 UserService.initKeycloak(render)
-HttpService.configure()
-setTimeout(function(){
-  HttpService.getSession().then((response)=>{
-    console.log(response)
-  })
-}, 3000)
+ChattyService.configure()

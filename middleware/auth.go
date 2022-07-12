@@ -54,11 +54,20 @@ func (m *AuthMiddleware) Middleware(ctx *gin.Context) {
 		return
 	}
 
-	_, err := m.OIDCTokenVerifier.Verify(ctx, parts[1])
+	token, err := m.OIDCTokenVerifier.Verify(ctx, parts[1])
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusForbidden)
 		return
 	}
+
+	var claims map[string]interface{}
+
+	err = token.Claims(&claims)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	ctx.Set("user", claims)
 
 	ctx.Next()
 }

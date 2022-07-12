@@ -1,13 +1,7 @@
 import axios from "axios";
 import UserService from "./UserService";
 
-const HttpMethods = {
-  GET: 'GET',
-  POST: 'POST',
-  DELETE: 'DELETE',
-};
 
-// const _axios = axios.create();
 const chattyClient = axios.create({
   baseURL: 'http://localhost:1234',
   timeout: 1000,
@@ -25,18 +19,14 @@ const configure = () => {
   });
 };
 
-
-const getSession = () => {
-  return chattyClient.get("/v1/session")
+const joinChat = () => {
+  const ws = new WebSocket('ws://localhost:1234/ws');
+  return ws
 }
 
-const getAxiosClient = () => chattyClient;
-
-const HttpService = {
-  HttpMethods,
+const ChattyService = {
   configure,
-  getAxiosClient,
-  getSession
+  joinChat
 };
 
-export default HttpService;
+export default ChattyService;
