@@ -27,11 +27,8 @@ type Server struct {
 }
 
 type Auth struct {
-	Issuer      string `mapstructure:"issuer"`
-	ClientID    string `mapstructure:"client_id"`
-	SecretID    string `mapstructure:"secret_id"`
-	RedirectURL string `mapstructure:"redirect_url"`
-	State       string `mapstructure:"state"`
+	Issuer   string `mapstructure:"issuer"`
+	ClientID string `mapstructure:"client_id"`
 }
 
 type Config struct {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -37,19 +38,17 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
-	s.engine.GET("/callback", authMiddleware.Callback())
 
-	s.engine.LoadHTMLGlob("web/*.html")
-	s.engine.Static("/assets", "./web/assets")
-
-	s.engine.GET("/redirect", func(ctx *gin.Context) {
-		ctx.HTML(http.StatusOK, "index.html", gin.H{})
-	})
+	s.engine.Use(cors.New(cors.Config{
+		AllowCredentials: true,
+		AllowAllOrigins:  true,
+		AllowHeaders:     []string{"Origin", "Authorization"},
+	}))
+	s.engine.Use(authMiddleware.Middleware)
 
 	v1 := s.engine.Group("/v1")
-	v1.Use(authMiddleware.Middleware)
-	v1.GET("/", func(ctx *gin.Context) {
-		ctx.HTML(http.StatusOK, "index.html", gin.H{})
+	v1.GET("/session", func(ctx *gin.Context) {
+		ctx.String(http.StatusOK, "ok")
 	})
 
 	s.engine.GET("/ws", func(ctx *gin.Context) {

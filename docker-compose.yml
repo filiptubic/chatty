@@ -10,17 +10,30 @@ services:
         POSTGRES_USER: keycloak
         POSTGRES_PASSWORD: password
   keycloak:
-      image: jboss/keycloak
-      environment:
-        DB_VENDOR: POSTGRES
-        DB_ADDR: postgres
-        DB_DATABASE: keycloak
-        DB_USER: keycloak
-        DB_SCHEMA: public
-        DB_PASSWORD: password
-        KEYCLOAK_USER: admin
-        KEYCLOAK_PASSWORD: 123
-      ports:
-        - 8080:8080
-      depends_on:
-        - postgres
+    image: jboss/keycloak
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: 123
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/auth/realms/chatty-realm"]
+      interval: 200s
+      timeout: 200s
+      retries: 5
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+  web:
+    build:
+      dockerfile: Dockerfile
+      context: ./web
+    ports:
+      - 3000:3000
+    volumes:
+      - ./web:/web
