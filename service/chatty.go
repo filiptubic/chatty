@@ -8,6 +8,10 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+var (
+	channel = make(map[*websocket.Conn]struct{})
+)
+
 type Authenticator interface {
 	Authenticate(ctx context.Context, token string) (*oidc.IDToken, error)
 }
@@ -28,6 +32,8 @@ type Message struct {
 }
 
 func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
+	channel[ws] = struct{}{}
+
 	var msg Message
 
 	// first authenticate
@@ -67,6 +73,14 @@ func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
 		err := websocket.JSON.Receive(ws, &msg)
 		if err != nil {
 			return
+		}
+		for client := range channel {
+			err = websocket.JSON.Send(client, &msg)
+			if err != nil {
+				log.Error().
+					Err(err).
+					Msg("failed to send msg to client")
+			}
 		}
 		err = websocket.JSON.Send(ws, &msg)
 		if err != nil {
