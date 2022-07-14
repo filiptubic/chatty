@@ -7,6 +7,8 @@ const chattyClient = axios.create({
   timeout: 1000,
 });
 
+var wsConn = null
+
 const configure = () => {
   chattyClient.interceptors.request.use((config) => {
     if (UserService.isLoggedIn()) {
@@ -20,8 +22,10 @@ const configure = () => {
 };
 
 const joinChat = () => {
-  const ws = new WebSocket('ws://localhost:1234/ws');
-  return ws
+  if (wsConn == null) {
+    wsConn = new WebSocket('ws://localhost:1234/ws');
+  }
+  return wsConn
 }
 
 const ChattyService = {

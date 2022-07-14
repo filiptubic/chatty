@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"sync"
 
 	"github.com/coreos/go-oidc"
 	"github.com/rs/zerolog/log"
@@ -9,8 +10,22 @@ import (
 )
 
 var (
+	m       sync.Mutex
 	channel = make(map[*websocket.Conn]struct{})
 )
+
+func joinChannel(ws *websocket.Conn) {
+	m.Lock()
+	defer m.Unlock()
+	channel[ws] = struct{}{}
+}
+
+func exitChannel(ws *websocket.Conn) {
+	m.Lock()
+	defer m.Unlock()
+	delete(channel, ws)
+	log.Info().Msg("client exited")
+}
 
 type Authenticator interface {
 	Authenticate(ctx context.Context, token string) (*oidc.IDToken, error)
@@ -32,11 +47,8 @@ type Message struct {
 }
 
 func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
-	channel[ws] = struct{}{}
-
 	var msg Message
 
-	// first authenticate
 	err := websocket.JSON.Receive(ws, &msg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to receive from ws")
@@ -58,17 +70,9 @@ func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
 		return
 	}
 
-	err = websocket.JSON.Send(ws, &Message{
-		Event: "joined",
-		Data:  "hello",
-	})
-	if err != nil {
-		log.Error().
-			Err(err).
-			Msg("failed to send join event")
-	}
+	joinChannel(ws)
+	defer exitChannel(ws)
 
-	// authenticated
 	for {
 		err := websocket.JSON.Receive(ws, &msg)
 		if err != nil {
@@ -81,10 +85,6 @@ func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
 					Err(err).
 					Msg("failed to send msg to client")
 			}
-		}
-		err = websocket.JSON.Send(ws, &msg)
-		if err != nil {
-			return
 		}
 		select {
 		case <-ctx.Done():

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState } from "react"
 import ChattyService from "../services/ChattyService";
 import UserService from "../services/UserService";
 
@@ -8,18 +8,17 @@ const Chat = () => {
     const [message, setMessage] = useState("")
     const [messages, setMessages] = useState([])
 
-    var ws = useRef(ChattyService.joinChat())
+    var ws = ChattyService.joinChat()
 
-    ws.current.onopen = (event) => {
-        ws.current.send(JSON.stringify({
+    ws.onopen = (event) => {
+        ws.send(JSON.stringify({
             event: "auth",
             data: UserService.getToken()
         }))
     }
-    ws.current.onmessage = (event) => {
+    ws.onmessage = (event) => {
         console.log("from server: " + event.data)
-        messages.push(event.data)
-        setMessages(messages)
+        setMessages([...messages, JSON.parse(event.data)])
     }
     
 
@@ -28,7 +27,7 @@ const Chat = () => {
     }
 
     const sendMessage = () => {
-        ws.current.send(JSON.stringify({
+        ws.send(JSON.stringify({
             event: "message",
             data: message
         }))
@@ -46,7 +45,8 @@ const Chat = () => {
             <div>
             {
                 messages.map(function(msg, i){
-                    return <div key={i}>{msg}</div>
+                    if (msg.event !== 'message') return null
+                    return <div key={i}>{msg.data}</div>
                 })
             }
             </div>
