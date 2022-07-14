@@ -48,6 +48,7 @@ const UserService = {
   getUsername,
   hasRole,
   getParsedToken,
+  keycloak
 };
 
 export default UserService;

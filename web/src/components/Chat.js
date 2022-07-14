@@ -1,10 +1,10 @@
 import { useState } from "react"
 import ChattyService from "../services/ChattyService";
 import UserService from "../services/UserService";
-
+import AlignItemsList from "./Messages";
+import { TextField, Button, Container } from "@mui/material";
 
 const Chat = () => {
-    const token = UserService.getParsedToken()
     const [message, setMessage] = useState("")
     const [messages, setMessages] = useState([])
 
@@ -20,35 +20,44 @@ const Chat = () => {
         console.log("from server: " + event.data)
         setMessages([...messages, JSON.parse(event.data)])
     }
-    
+
 
     const clearMessage = () => {
         setMessage("")
     }
 
     const sendMessage = () => {
-        ws.send(JSON.stringify({
+        console.log(UserService.getParsedToken())
+        const msg = {
             event: "message",
+            sender: {
+                picture: UserService.getParsedToken().picture,
+                name: UserService.getParsedToken().name,
+            },
             data: message
-        }))
+        }
+        ws.send(JSON.stringify(msg))
         console.log('message "' + message + '" sent')
         clearMessage()
     }
 
     return (
         <div>
-            <div>{token.name} ({token.email})</div>
+            {/* <div>{token.name} ({token.email})</div>
             <div>
                 <input value={message} onChange={(e) => { setMessage(e.target.value) }} />
-                <button onClick={() => {sendMessage()}}>send</button>
-            </div>
+                <button onClick={() => { sendMessage() }}>send</button>
+            </div> */}
             <div>
-            {
-                messages.map(function(msg, i){
-                    if (msg.event !== 'message') return null
-                    return <div key={i}>{msg.data}</div>
-                })
-            }
+                <Container maxWidth="sm">
+                    <div>
+                        <TextField id="standard-basic" label="enter message" variant="standard" value={message} onChange={(e) => { setMessage(e.target.value) }} />
+                        <Button onClick={() => { sendMessage() }} variant="contained">
+                            Send
+                        </Button>
+                    </div>
+                    <AlignItemsList messages={messages} />
+                </Container>
             </div>
         </div>
     )

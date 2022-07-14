@@ -41,9 +41,15 @@ func NewChattyService(auth Authenticator) *ChattyService {
 	}
 }
 
+type Sender struct {
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
+}
+
 type Message struct {
-	Event string `json:"event"`
-	Data  string `json:"data"`
+	Event  string `json:"event"`
+	Sender Sender `json:"sender"`
+	Data   string `json:"data"`
 }
 
 func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
