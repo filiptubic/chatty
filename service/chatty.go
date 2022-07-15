@@ -101,7 +101,7 @@ func (s *ChattyService) Route(ws *websocket.Conn, m repository.Message) {
 			log.Error().Err(err).Msg("failed to send message")
 		}
 	default:
-		log.Info().Interface("msg", m).Msg("discarding unkown msg")
+		log.Info().Interface("msg", m).Msg("discarding unkown message")
 	}
 }
 
@@ -127,6 +127,7 @@ func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
 	defer exitChannel(ws)
 
 	for {
+		var msg repository.Message
 		err := websocket.JSON.Receive(ws, &msg)
 		if err != nil {
 			return

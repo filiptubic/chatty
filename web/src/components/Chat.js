@@ -2,12 +2,32 @@ import React from "react";
 import ChattyService from "../services/ChattyService";
 import UserService from "../services/UserService";
 import AlignItemsList from "./Messages";
-import { TextField, Container } from "@mui/material";
+import { TextField, Container, Typography, Zoom } from "@mui/material";
 import Grid from '@mui/material/Grid';
+import { Box } from "@mui/system";
+import debounce from "lodash/debounce";
 
 const Chat = () => {
-    const [message, setMessage] = React.useState("")
+    const [message, setMessage] = React.useState('')
     const [messages, setMessages] = React.useState([])
+    const [typing, setTyping] = React.useState('')
+    const [typingShowed, setTypingShowed] = React.useState(false)
+    const typingRecvDebounce = React.useRef(debounce(() => {
+        setTyping('')
+        setTypingShowed(false)
+    }, 500))
+    
+    
+    const typingSendDebounce = React.useRef(debounce(() => {
+        ws.send(JSON.stringify({
+            event: "typing",
+            sender: {
+                picture: UserService.getParsedToken().picture,
+                name: UserService.getParsedToken().name,
+                username: UserService.getParsedToken().preferred_username
+            }
+        }))
+    }, 100))
 
     var ws = ChattyService.joinChat()
 
@@ -18,10 +38,20 @@ const Chat = () => {
         }))
     }
     ws.onmessage = (event) => {
-        console.log("from server: " + event.data)
-        setMessages((oldMsgs) => {
-            return [...oldMsgs, JSON.parse(event.data)]
-        })
+        const msg = JSON.parse(event.data)
+        console.log(msg)
+        if (msg.event === 'message') {
+            setMessages((oldMsgs) => {
+                return [...oldMsgs, msg]
+            })
+        } else if (msg.event === 'typing') {
+            typingRecvDebounce.current()
+            if (typingShowed) return
+            if (msg.sender.username === UserService.getParsedToken().preferred_username) return
+
+            setTyping(msg.sender.name + ' typing...')
+            setTypingShowed(true)
+        }
     }
 
 
@@ -44,18 +74,30 @@ const Chat = () => {
         clearMessage()
     }
 
+    const onTyping = (e) => {
+        typingSendDebounce.current()
+        setMessage(e.target.value)
+    }
+
     return (
         <div>
             <div>
                 <Container maxWidth="xl">
                     <Grid container spacing={2}>
                         <Grid item xs={12} style={{
-                            height: '95vh',
-                            maxHeight: '95vh',
+                            height: '90vh',
+                            maxHeight: '90vh',
                             display: 'flex',
                             flexDirection: 'column-reverse'
                         }}>
                             <AlignItemsList messages={messages} />
+                        </Grid>
+                        <Grid item xs={2}>
+                            <Box sx={{ display: 'flex', height: "20px" }}>
+                                <Zoom in={typingShowed}>
+                                    <Typography variant="body2"><i>{typing}</i></Typography>
+                                </Zoom>
+                            </Box>
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
@@ -66,7 +108,8 @@ const Chat = () => {
                                 style={{
                                     width: '100%',
                                 }}
-                                value={message} onChange={(e) => { setMessage(e.target.value) }}
+                                value={message}
+                                onChange={onTyping}
                                 onKeyUp={(e) => {
                                     if (e.key === 'Enter') sendMessage()
                                 }}

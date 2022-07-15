@@ -18,8 +18,9 @@ type Channel uuid.UUID
 type EventType string
 
 type Sender struct {
-	Name    string `json:"name"`
-	Picture string `json:"picture"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Picture  string `json:"picture"`
 }
 
 type Message struct {
