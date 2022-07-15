@@ -1,14 +1,13 @@
-import { useState } from "react"
+import React from "react";
 import ChattyService from "../services/ChattyService";
 import UserService from "../services/UserService";
 import AlignItemsList from "./Messages";
-import { TextField, Button, Container } from "@mui/material";
+import { TextField, Container } from "@mui/material";
 import Grid from '@mui/material/Grid';
-import SendIcon from '@mui/icons-material/Send';
 
 const Chat = () => {
-    const [message, setMessage] = useState("")
-    const [messages, setMessages] = useState([])
+    const [message, setMessage] = React.useState("")
+    const [messages, setMessages] = React.useState([])
 
     var ws = ChattyService.joinChat()
 
@@ -29,43 +28,49 @@ const Chat = () => {
     }
 
     const sendMessage = () => {
-        console.log(UserService.getParsedToken())
         const msg = {
             event: "message",
             sender: {
                 picture: UserService.getParsedToken().picture,
                 name: UserService.getParsedToken().name,
             },
-            data: message
+            data: message.trim()
         }
+        if (msg.data === '') return
+
         ws.send(JSON.stringify(msg))
-        console.log('message "' + message + '" sent')
         clearMessage()
     }
 
     return (
         <div>
             <div>
-                <Container maxWidth="sm">
+                <Container maxWidth="xl">
                     <Grid container spacing={2}>
+                        <Grid item xs={12} style={{
+                            height: '95vh',
+                            maxHeight: '95vh',
+                            display: 'flex',
+                            flexDirection: 'column-reverse'
+                        }}>
+                            <AlignItemsList messages={messages} />
+                        </Grid>
                         <Grid item xs={12}>
                             <TextField
                                 id="standard-basic"
-                                label="enter message"
+                                autoComplete="off"
+                                label="type message [enter to send]"
                                 variant="standard"
-                                style={{ width: '100%' }}
-                                value={message} onChange={(e) => { setMessage(e.target.value) }} />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Button onClick={() => { sendMessage() }} style={{ width: '100%' }} variant="contained">
-                                <span style={{ paddingRight: "10px" }}>Send</span> <SendIcon />
-                            </Button>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <AlignItemsList messages={messages} />
+                                style={{
+                                    width: '100%',
+                                }}
+                                value={message} onChange={(e) => { setMessage(e.target.value) }}
+                                onKeyUp={(e) => {
+                                    if (e.key === 'Enter') sendMessage()
+                                }}
+                            />
                         </Grid>
                     </Grid>
-
                 </Container>
             </div>
         </div>

@@ -1,10 +1,18 @@
 import * as React from 'react';
-import { List, ListItem, ListItemText, ListItemAvatar, Avatar, Divider } from '@mui/material';
+import { Fade, List, ListItem, ListItemText, ListItemAvatar, Avatar, Divider } from '@mui/material';
 
 export default function AlignItemsList(prop) {
+    const messagesEndRef = React.createRef()
+
+    React.useEffect(() => {
+        const scrollToBottom = () => {
+            messagesEndRef.current.scrollIntoView({ behavior: 'instant' })
+        }
+        scrollToBottom()
+    }, [prop.messages, messagesEndRef]);
 
     return (
-        <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+        <List style={{overflow: 'auto'}} >
             {
                 prop.messages.map(function (msg, i) {
                     if (msg.event !== 'message')
@@ -13,18 +21,21 @@ export default function AlignItemsList(prop) {
                     return (
                         <div key={i}>
                             <div>{i > 0 && <Divider variant="inset" component="li" />}</div>
-                            <ListItem alignItems="flex-start">
+                            <ListItem>
                                 <ListItemAvatar>
                                     <Avatar alt={msg.sender.name} imgProps={{ referrerPolicy: "no-referrer" }} src={msg.sender.picture} />
                                 </ListItemAvatar>
-                                <ListItemText style={{ overflowWrap: 'break-word', wordWrap: 'break-word' }} primary={msg.data} />
+                                <Fade in={true}>
+                                    <ListItemText style={{ overflowWrap: 'break-word', wordWrap: 'break-word' }} primary={msg.data} secondary={msg.sender.name} />
+                                </Fade>
                             </ListItem>
                         </div>
                     )
                 })
             }
+            <ListItem>
+                <div ref={messagesEndRef} />
+            </ListItem>
         </List>
     );
 }
-// overflow-wrap: break-word;
-// word-wrap: break-word;
