@@ -19,7 +19,9 @@ const Chat = () => {
     }
     ws.onmessage = (event) => {
         console.log("from server: " + event.data)
-        setMessages([...messages, JSON.parse(event.data)])
+        setMessages((oldMsgs) => {
+            return [...oldMsgs, JSON.parse(event.data)]
+        })
     }
 
 

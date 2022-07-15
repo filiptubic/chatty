@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"chatty/auth"
+	"chatty/pkg/auth"
 	"net/http"
 	"strings"
 

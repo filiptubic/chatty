@@ -19,7 +19,7 @@ export default function AlignItemsList(prop) {
                         return null
 
                     return (
-                        <div key={i}>
+                        <div key={msg.id}>
                             <div>{i > 0 && <Divider variant="inset" component="li" />}</div>
                             <ListItem>
                                 <ListItemAvatar>
