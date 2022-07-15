@@ -3,6 +3,8 @@ import ChattyService from "../services/ChattyService";
 import UserService from "../services/UserService";
 import AlignItemsList from "./Messages";
 import { TextField, Button, Container } from "@mui/material";
+import Grid from '@mui/material/Grid';
+import SendIcon from '@mui/icons-material/Send';
 
 const Chat = () => {
     const [message, setMessage] = useState("")
@@ -43,20 +45,27 @@ const Chat = () => {
 
     return (
         <div>
-            {/* <div>{token.name} ({token.email})</div>
-            <div>
-                <input value={message} onChange={(e) => { setMessage(e.target.value) }} />
-                <button onClick={() => { sendMessage() }}>send</button>
-            </div> */}
             <div>
                 <Container maxWidth="sm">
-                    <div>
-                        <TextField id="standard-basic" label="enter message" variant="standard" value={message} onChange={(e) => { setMessage(e.target.value) }} />
-                        <Button onClick={() => { sendMessage() }} variant="contained">
-                            Send
-                        </Button>
-                    </div>
-                    <AlignItemsList messages={messages} />
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <TextField
+                                id="standard-basic"
+                                label="enter message"
+                                variant="standard"
+                                style={{ width: '100%' }}
+                                value={message} onChange={(e) => { setMessage(e.target.value) }} />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button onClick={() => { sendMessage() }} style={{ width: '100%' }} variant="contained">
+                                <span style={{ paddingRight: "10px" }}>Send</span> <SendIcon />
+                            </Button>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <AlignItemsList messages={messages} />
+                        </Grid>
+                    </Grid>
+
                 </Container>
             </div>
         </div>
