@@ -1,7 +1,7 @@
 package service
 
 import (
-	repository "chatty/pkg/repostory"
+	"chatty/pkg/model"
 	"context"
 	"errors"
 	"sync"
@@ -16,7 +16,7 @@ import (
 var (
 	m              sync.Mutex
 	channel        = make(map[*websocket.Conn]struct{})
-	defaultChannel repository.Channel
+	defaultChannel model.Channel
 )
 
 func joinChannel(ws *websocket.Conn) {
@@ -33,8 +33,8 @@ func exitChannel(ws *websocket.Conn) {
 }
 
 type Repository interface {
-	SaveInHistory(ch repository.Channel, m repository.Message)
-	LoadHistory(ch repository.Channel) []repository.Message
+	SaveInHistory(ch model.Channel, m model.Message)
+	LoadHistory(ch model.Channel) []model.Message
 }
 
 type Authenticator interface {
@@ -51,7 +51,7 @@ func NewChattyService(auth Authenticator, repo Repository) (*ChattyService, erro
 	if err != nil {
 		return nil, err
 	}
-	defaultChannel = repository.Channel(uid)
+	defaultChannel = model.Channel(uid)
 
 	return &ChattyService{
 		auth: auth,
@@ -72,11 +72,11 @@ func (s *ChattyService) Join(ws *websocket.Conn) {
 	}()
 }
 
-func (s *ChattyService) Send(ws *websocket.Conn, m repository.Message) error {
+func (s *ChattyService) Send(ws *websocket.Conn, m model.Message) error {
 	m.ID = uuid.New()
 	m.SendAt = time.Now().UTC()
 
-	if m.Event == repository.MessageEvent {
+	if m.Event == model.MessageEvent {
 		s.repo.SaveInHistory(defaultChannel, m)
 	}
 
@@ -93,9 +93,9 @@ func (s *ChattyService) Send(ws *websocket.Conn, m repository.Message) error {
 	return nil
 }
 
-func (s *ChattyService) Route(ws *websocket.Conn, m repository.Message) {
+func (s *ChattyService) Route(ws *websocket.Conn, m model.Message) {
 	switch m.Event {
-	case repository.MessageEvent, repository.TypingEvent:
+	case model.MessageEvent, model.TypingEvent:
 		err := s.Send(ws, m)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to send message")
@@ -106,20 +106,20 @@ func (s *ChattyService) Route(ws *websocket.Conn, m repository.Message) {
 }
 
 func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
-	var msg repository.Message
+	var msg model.Message
 
 	err := websocket.JSON.Receive(ws, &msg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to receive from ws")
 	}
-	if msg.Event != repository.AuthEvent {
-		_ = websocket.JSON.Send(ws, repository.ErrorMessage(errors.New("invalid auth")))
+	if msg.Event != model.AuthEvent {
+		_ = websocket.JSON.Send(ws, model.ErrorMessage(errors.New("invalid auth")))
 		return
 	}
 
 	_, err = s.auth.Authenticate(ctx, msg.Data.(string))
 	if err != nil {
-		_ = websocket.JSON.Send(ws, repository.ErrorMessage(errors.New("invalid auth")))
+		_ = websocket.JSON.Send(ws, model.ErrorMessage(errors.New("invalid auth")))
 		return
 	}
 
@@ -127,7 +127,7 @@ func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
 	defer exitChannel(ws)
 
 	for {
-		var msg repository.Message
+		var msg model.Message
 		err := websocket.JSON.Receive(ws, &msg)
 		if err != nil {
 			return
