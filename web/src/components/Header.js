@@ -8,6 +8,25 @@ import { styled } from '@mui/material/styles';
 const settings = ['Profile', 'Account', 'Logout'];
 const drawerWidth = 240;
 
+const AppBar = styled(MuiAppBar, {
+    shouldForwardProp: (prop) => prop !== "open"
+})(({ theme, open }) => ({
+    zIndex: theme.zIndex.drawer + 1,
+    transition: theme.transitions.create(["width", "margin"], {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen
+    }),
+    ...(open && {
+        marginLeft: drawerWidth,
+        width: `calc(100% - ${drawerWidth}px)`,
+        transition: theme.transitions.create(["width", "margin"], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen
+        })
+    })
+}));
+
+
 const Header = (props) => {
     const [anchorElUser, setAnchorElUser] = React.useState(null);
 
@@ -38,27 +57,9 @@ const Header = (props) => {
         setOpen(true);
     };
 
-    const AppBar = styled(MuiAppBar, {
-        shouldForwardProp: (prop) => prop !== "open"
-      })(({ theme, open }) => ({
-        zIndex: theme.zIndex.drawer + 1,
-        transition: theme.transitions.create(["width", "margin"], {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen
-        }),
-        ...(open && {
-          marginLeft: drawerWidth,
-          width: `calc(100% - ${drawerWidth}px)`,
-          transition: theme.transitions.create(["width", "margin"], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen
-          })
-        })
-      }));
-
 
     return (
-        <Box sx={{display: 'flex'}}>
+        <Box sx={{ display: 'flex' }}>
             <AppBar position="fixed" open={open}>
                 <Container maxWidth={false}>
                     <Toolbar disableGutters>

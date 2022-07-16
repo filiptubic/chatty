@@ -19,10 +19,10 @@ function App() {
           open={open}
           setOpen={setOpen}
           handleDrawerClose={handleDrawerClose}
-          sx={{ flexGrow: 0 }}
+          sx={{ flexGrow: 1 }}
         />
         <Sidebar
-          sx={{ flexGrow: 0 }}
+          sx={{ flexGrow: 1 }}
           open={open}
           setOpen={setOpen}
           handleDrawerClose={handleDrawerClose}
