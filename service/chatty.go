@@ -1,6 +1,7 @@
 package service
 
 import (
+	"chatty/pkg/client/keycloak"
 	"chatty/pkg/model"
 	"context"
 	"errors"
@@ -41,12 +42,17 @@ type Authenticator interface {
 	Authenticate(ctx context.Context, token string) (*oidc.IDToken, error)
 }
 
-type ChattyService struct {
-	auth Authenticator
-	repo Repository
+type UserClient interface {
+	ListUsers() (keycloak.UserList, error)
 }
 
-func NewChattyService(auth Authenticator, repo Repository) (*ChattyService, error) {
+type ChattyService struct {
+	auth  Authenticator
+	repo  Repository
+	users UserClient
+}
+
+func NewChattyService(auth Authenticator, repo Repository, users UserClient) (*ChattyService, error) {
 	uid, err := uuid.NewUUID()
 	if err != nil {
 		return nil, err
@@ -54,9 +60,14 @@ func NewChattyService(auth Authenticator, repo Repository) (*ChattyService, erro
 	defaultChannel = model.Channel(uid)
 
 	return &ChattyService{
-		auth: auth,
-		repo: repo,
+		auth:  auth,
+		repo:  repo,
+		users: users,
 	}, nil
+}
+
+func (s *ChattyService) ListUsers() (keycloak.UserList, error) {
+	return s.users.ListUsers()
 }
 
 func (s *ChattyService) Join(ws *websocket.Conn) {

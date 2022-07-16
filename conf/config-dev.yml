@@ -4,8 +4,10 @@ server:
     level: debug
 
 auth:
+  base: http://localhost:8080
   issuer: http://localhost:8080/auth/realms/chatty-realm
   client_id: chatty
+  secret: Tmtk7zbzjCNWaBVQNw5TqhBhH8LpRfBy
 
 database:
   password: postgres

@@ -27,8 +27,10 @@ type Server struct {
 }
 
 type Auth struct {
+	Base     string `mapstructure:"base"`
 	Issuer   string `mapstructure:"issuer"`
 	ClientID string `mapstructure:"client_id"`
+	Secret   string `mapstructure:"secret"`
 }
 
 type Config struct {

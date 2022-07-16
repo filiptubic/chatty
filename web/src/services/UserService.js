@@ -1,4 +1,5 @@
 import Keycloak from "keycloak-js";
+import axios from 'axios';
 
 const keycloak = new Keycloak({
   url: 'http://localhost:8080/auth/',
@@ -38,6 +39,18 @@ const hasRole = (roles) => roles.some((role) => keycloak.hasRealmRole(role));
 
 const getParsedToken = () => {return keycloak.tokenParsed}
 
+const listUsers = (token) => {
+  // TODO move to chatty 
+  axios.get(
+    "http://localhost:1234/v1/users",
+    { 
+      headers: {'Authorization': 'Bearer ' + token}
+    }
+  ).then((resp) => {
+    console.log(resp.data)
+  })
+}
+
 const UserService = {
   initKeycloak,
   doLogin,
@@ -48,6 +61,7 @@ const UserService = {
   getUsername,
   hasRole,
   getParsedToken,
+  listUsers,
   keycloak
 };
 
