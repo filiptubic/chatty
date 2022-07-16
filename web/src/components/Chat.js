@@ -85,8 +85,8 @@ const Chat = () => {
                 <Container maxWidth="xl">
                     <Grid container spacing={2}>
                         <Grid item xs={12} style={{
-                            height: '90vh',
-                            maxHeight: '90vh',
+                            height: '85vh',
+                            maxHeight: '85vh',
                             display: 'flex',
                             flexDirection: 'column-reverse'
                         }}>
