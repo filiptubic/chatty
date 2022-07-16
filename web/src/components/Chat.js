@@ -16,8 +16,8 @@ const Chat = () => {
         setTyping('')
         setTypingShowed(false)
     }, 500))
-    
-    
+
+
     const typingSendDebounce = React.useRef(debounce(() => {
         ws.send(JSON.stringify({
             event: "typing",
@@ -80,45 +80,41 @@ const Chat = () => {
     }
 
     return (
-        <div>
-            <div>
-                <Container maxWidth="xl">
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} style={{
-                            height: '85vh',
-                            maxHeight: '85vh',
-                            display: 'flex',
-                            flexDirection: 'column-reverse'
-                        }}>
-                            <AlignItemsList messages={messages} />
-                        </Grid>
-                        <Grid item xs={2}>
-                            <Box sx={{ display: 'flex', height: "20px" }}>
-                                <Zoom in={typingShowed}>
-                                    <Typography variant="body2"><i>{typing}</i></Typography>
-                                </Zoom>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                id="standard-basic"
-                                autoComplete="off"
-                                label="type message [enter to send]"
-                                variant="standard"
-                                style={{
-                                    width: '100%',
-                                }}
-                                value={message}
-                                onChange={onTyping}
-                                onKeyUp={(e) => {
-                                    if (e.key === 'Enter') sendMessage()
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                </Container>
-            </div>
-        </div>
+        <Container maxWidth="xl" sx={{flexGrow: 1}}>
+            <Grid container spacing={2}>
+                <Grid item xs={12} style={{
+                    height: '85vh',
+                    maxHeight: '85vh',
+                    display: 'flex',
+                    flexDirection: 'column-reverse'
+                }}>
+                    <AlignItemsList messages={messages} />
+                </Grid>
+                <Grid item xs={2}>
+                    <Box sx={{ display: 'flex', height: "20px" }}>
+                        <Zoom in={typingShowed}>
+                            <Typography variant="body2"><i>{typing}</i></Typography>
+                        </Zoom>
+                    </Box>
+                </Grid>
+                <Grid item xs={12}>
+                    <TextField
+                        id="standard-basic"
+                        autoComplete="off"
+                        label="type message [enter to send]"
+                        variant="standard"
+                        style={{
+                            width: '100%',
+                        }}
+                        value={message}
+                        onChange={onTyping}
+                        onKeyUp={(e) => {
+                            if (e.key === 'Enter') sendMessage()
+                        }}
+                    />
+                </Grid>
+            </Grid>
+        </Container>
     )
 }
 
