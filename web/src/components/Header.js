@@ -185,7 +185,7 @@ const Header = (props) => {
                                                         </ListItemAvatar>
                                                         <ListItemText
                                                             sx={{ overflowWrap: 'break-word', wordWrap: 'break-word' }}
-                                                            primary={user.username}
+                                                            primary={user.firstName + ' ' + user.lastName}
                                                         />
                                                     </ListItem>
                                                 )

@@ -33,7 +33,7 @@ const updateToken = (successCallback) =>
     .then(successCallback)
     .catch(doLogin);
 
-const getUsername = () => keycloak.tokenParsed?.preferred_username;
+const getUsername = () => keycloak.tokenParsed.preferred_username;
 
 const hasRole = (roles) => roles.some((role) => keycloak.hasRealmRole(role));
 
