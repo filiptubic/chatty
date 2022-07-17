@@ -6,12 +6,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/websocket"
 )
 
 type Service interface {
-	HandleWS(ctx context.Context, ws *websocket.Conn)
+	HandleChat(ctx context.Context, ws *websocket.Conn, chatID uuid.UUID)
 	ListUsers(firstName, lastName, email, search string) (keycloak.UserList, error)
 }
 
@@ -25,9 +26,21 @@ func NewChattyHandler(service Service) *ChattyHandler {
 	}
 }
 
-func (h *ChattyHandler) handleWS(ctx *gin.Context) {
+func (h *ChattyHandler) handleChat(ctx *gin.Context) {
 	websocket.Handler(func(ws *websocket.Conn) {
-		h.service.HandleWS(ctx, ws)
+		chatIDParam, ok := ctx.Params.Get("chatID")
+		if !ok {
+			ctx.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		chatID, err := uuid.Parse(chatIDParam)
+		if err != nil {
+			ctx.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		h.service.HandleChat(ctx, ws, chatID)
 		defer ws.Close()
 	}).ServeHTTP(ctx.Writer, ctx.Request)
 }
@@ -37,6 +50,7 @@ func (h *ChattyHandler) listUsers(ctx *gin.Context) {
 	firstName := ctx.Query("first_name")
 	lastName := ctx.Query("last_name")
 	search := ctx.Query("search")
+
 	users, err := h.service.ListUsers(firstName, lastName, email, search)
 	if err != nil {
 		log.Error().

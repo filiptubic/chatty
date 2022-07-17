@@ -29,7 +29,7 @@ const Chat = () => {
         }))
     }, 100))
 
-    var ws = ChattyService.joinChat()
+    var ws = ChattyService.joinChat('412bbd27-05f3-11ed-82e4-fc3497a34a5a')
 
     ws.onopen = (event) => {
         ws.send(JSON.stringify({

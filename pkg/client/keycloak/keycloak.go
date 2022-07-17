@@ -66,7 +66,10 @@ func (k *Keycloak) GetToken() (*Token, error) {
 	}
 
 	var token Token
-	json.NewDecoder(resp.Body).Decode(&token)
+	err = json.NewDecoder(resp.Body).Decode(&token)
+	if err != nil {
+		return nil, err
+	}
 
 	return &token, nil
 }

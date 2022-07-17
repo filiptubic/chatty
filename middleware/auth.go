@@ -36,6 +36,7 @@ func AuthMiddleware(auth *auth.Authenticator) gin.HandlerFunc {
 			return
 		}
 
+		// TODO
 		var claims map[string]interface{}
 
 		err = token.Claims(&claims)

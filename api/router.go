@@ -36,7 +36,7 @@ func Mount(cfg *config.Config) (*gin.Engine, error) {
 	v1.Use(middleware.AuthMiddleware(authenticator))
 	v1.GET("/users", chattyHandler.listUsers)
 
-	engine.GET("/ws", chattyHandler.handleWS)
+	engine.GET("/ws/:chatID", chattyHandler.handleChat)
 
 	return engine, nil
 }

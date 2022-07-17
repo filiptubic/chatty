@@ -15,23 +15,9 @@ import (
 )
 
 var (
-	m              sync.Mutex
-	channel        = make(map[*websocket.Conn]struct{})
-	defaultChannel model.Channel
+	m        sync.Mutex
+	channels = make(map[uuid.UUID]map[*websocket.Conn]struct{})
 )
-
-func joinChannel(ws *websocket.Conn) {
-	m.Lock()
-	defer m.Unlock()
-	channel[ws] = struct{}{}
-}
-
-func exitChannel(ws *websocket.Conn) {
-	m.Lock()
-	defer m.Unlock()
-	delete(channel, ws)
-	log.Info().Msg("client exited")
-}
 
 type Repository interface {
 	SaveInHistory(ch model.Channel, m model.Message)
@@ -53,12 +39,6 @@ type ChattyService struct {
 }
 
 func NewChattyService(auth Authenticator, repo Repository, users UserClient) (*ChattyService, error) {
-	uid, err := uuid.NewUUID()
-	if err != nil {
-		return nil, err
-	}
-	defaultChannel = model.Channel(uid)
-
 	return &ChattyService{
 		auth:  auth,
 		repo:  repo,
@@ -70,10 +50,17 @@ func (s *ChattyService) ListUsers(firstName, lastName, email, search string) (ke
 	return s.users.ListUsers(firstName, lastName, email, search)
 }
 
-func (s *ChattyService) Join(ws *websocket.Conn) {
-	joinChannel(ws)
+func (s *ChattyService) JoinChat(ws *websocket.Conn, chatID uuid.UUID) {
+	m.Lock()
+	defer m.Unlock()
+
+	if _, ok := channels[chatID]; !ok {
+		channels[chatID] = make(map[*websocket.Conn]struct{})
+	}
+	channels[chatID][ws] = struct{}{}
+
 	go func() {
-		history := s.repo.LoadHistory(defaultChannel)
+		history := s.repo.LoadHistory(model.Channel(chatID))
 		for _, msg := range history {
 			err := websocket.JSON.Send(ws, msg)
 			if err != nil {
@@ -83,15 +70,22 @@ func (s *ChattyService) Join(ws *websocket.Conn) {
 	}()
 }
 
-func (s *ChattyService) Send(ws *websocket.Conn, m model.Message) error {
+func (s *ChattyService) ExitChat(ws *websocket.Conn, chatID uuid.UUID) {
+	m.Lock()
+	defer m.Unlock()
+
+	delete(channels[chatID], ws)
+}
+
+func (s *ChattyService) Send(ws *websocket.Conn, chatID uuid.UUID, m model.Message) error {
 	m.ID = uuid.New()
 	m.SendAt = time.Now().UTC()
 
 	if m.Event == model.MessageEvent {
-		s.repo.SaveInHistory(defaultChannel, m)
+		s.repo.SaveInHistory(model.Channel(chatID), m)
 	}
 
-	for client := range channel {
+	for client := range channels[chatID] {
 		go func(client *websocket.Conn) {
 			err := websocket.JSON.Send(client, &m)
 			if err != nil {
@@ -104,10 +98,10 @@ func (s *ChattyService) Send(ws *websocket.Conn, m model.Message) error {
 	return nil
 }
 
-func (s *ChattyService) Route(ws *websocket.Conn, m model.Message) {
+func (s *ChattyService) Route(ws *websocket.Conn, chatID uuid.UUID, m model.Message) {
 	switch m.Event {
 	case model.MessageEvent, model.TypingEvent:
-		err := s.Send(ws, m)
+		err := s.Send(ws, chatID, m)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to send message")
 		}
@@ -116,26 +110,33 @@ func (s *ChattyService) Route(ws *websocket.Conn, m model.Message) {
 	}
 }
 
-func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
+func (s *ChattyService) Authenticate(ctx context.Context, ws *websocket.Conn) error {
 	var msg model.Message
 
 	err := websocket.JSON.Receive(ws, &msg)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to receive from ws")
+		return err
 	}
 	if msg.Event != model.AuthEvent {
-		_ = websocket.JSON.Send(ws, model.ErrorMessage(errors.New("invalid auth")))
-		return
+		return err
 	}
 
 	_, err = s.auth.Authenticate(ctx, msg.Data.(string))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *ChattyService) HandleChat(ctx context.Context, ws *websocket.Conn, chatID uuid.UUID) {
+	err := s.Authenticate(ctx, ws)
 	if err != nil {
 		_ = websocket.JSON.Send(ws, model.ErrorMessage(errors.New("invalid auth")))
 		return
 	}
 
-	s.Join(ws)
-	defer exitChannel(ws)
+	s.JoinChat(ws, chatID)
+	defer s.ExitChat(ws, chatID)
 
 	for {
 		var msg model.Message
@@ -143,7 +144,7 @@ func (s *ChattyService) HandleWS(ctx context.Context, ws *websocket.Conn) {
 		if err != nil {
 			return
 		}
-		s.Route(ws, msg)
+		s.Route(ws, chatID, msg)
 		select {
 		case <-ctx.Done():
 			return
