@@ -3,7 +3,12 @@ import { Box } from '@mui/material';
 import './App.css';
 import Chat from './components/Chat';
 import Header from './components/Header';
-import {Sidebar, DrawerHeader} from './components/Sidebar'
+import { Sidebar, DrawerHeader } from './components/Sidebar'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from "react-router-dom";
 
 function App() {
 
@@ -29,8 +34,13 @@ function App() {
           handleDrawerClose={handleDrawerClose}
         />
         <Box sx={{ flexGrow: 1 }}>
-          <DrawerHeader/>
-          <Chat />
+          <DrawerHeader />
+          <BrowserRouter>
+            <Routes>
+              <Route index element={<Chat />} />
+              <Route path="/test" element={<div></div>} />
+            </Routes>
+          </BrowserRouter>
         </Box>
       </Box>
     </div>
