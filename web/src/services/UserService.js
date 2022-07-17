@@ -39,11 +39,13 @@ const hasRole = (roles) => roles.some((role) => keycloak.hasRealmRole(role));
 
 const getParsedToken = () => {return keycloak.tokenParsed}
 
-const listUsers = (token) => {
+const listUsers = () => {
+  const token = getToken()
   // TODO move to chatty 
   axios.get(
     "http://localhost:1234/v1/users",
     { 
+      // params: {"first_name": "Filip", "email": "tubefilip"},
       headers: {'Authorization': 'Bearer ' + token}
     }
   ).then((resp) => {

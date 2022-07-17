@@ -7,7 +7,7 @@ import {Sidebar, DrawerHeader} from './components/Sidebar'
 import UserService from "./services/UserService";
 
 function App() {
-  UserService.listUsers(UserService.getToken())
+  UserService.listUsers()
 
   const [open, setOpen] = React.useState(false);
 

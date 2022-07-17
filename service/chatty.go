@@ -43,7 +43,7 @@ type Authenticator interface {
 }
 
 type UserClient interface {
-	ListUsers() (keycloak.UserList, error)
+	ListUsers(firstName, lastName, email string) (keycloak.UserList, error)
 }
 
 type ChattyService struct {
@@ -66,8 +66,8 @@ func NewChattyService(auth Authenticator, repo Repository, users UserClient) (*C
 	}, nil
 }
 
-func (s *ChattyService) ListUsers() (keycloak.UserList, error) {
-	return s.users.ListUsers()
+func (s *ChattyService) ListUsers(firstName, lastName, email string) (keycloak.UserList, error) {
+	return s.users.ListUsers(firstName, lastName, email)
 }
 
 func (s *ChattyService) Join(ws *websocket.Conn) {
