@@ -37,13 +37,17 @@ type Token struct {
 	Scope            string `json:"scope"`
 }
 
+type UserAttributes struct {
+	Picture []string `json:"picture"`
+}
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	Created   int       `json:"createdTimestamp"`
-	FirstName string    `json:"firstName"`
-	LastName  string    `json:"lastName"`
-	Email     string    `json:"email"`
-	Username  string    `json:"username"`
+	ID         uuid.UUID      `json:"id"`
+	Created    int            `json:"createdTimestamp"`
+	FirstName  string         `json:"firstName"`
+	LastName   string         `json:"lastName"`
+	Email      string         `json:"email"`
+	Username   string         `json:"username"`
+	Attributes UserAttributes `json:"attributes"`
 }
 
 type UserList []User
@@ -105,6 +109,7 @@ func (k *Keycloak) ListUsers(firstName, lastName, email, search string) (UserLis
 	}
 
 	var userListResponse UserList
+	// var asd interface{}
 	err = json.NewDecoder(resp.Body).Decode(&userListResponse)
 	if err != nil {
 		return nil, err

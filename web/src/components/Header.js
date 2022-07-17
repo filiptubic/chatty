@@ -1,4 +1,4 @@
-import { Avatar, Box, Container, IconButton, InputBase, Menu, MenuItem, Toolbar, Tooltip, Typography } from '@mui/material';
+import { Avatar, Box, Container, IconButton, InputBase, List, ListItem, ListItemAvatar, ListItemText, Menu, MenuItem, Popover, Toolbar, Tooltip, Typography } from '@mui/material';
 import * as React from 'react';
 import UserService from '../services/UserService';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -72,17 +72,26 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 
 const Header = (props) => {
+    const [anchorElSearch, setAnchorElSearch] = React.useState(null)
     const [anchorElUser, setAnchorElUser] = React.useState(null)
-    const [searchedUsers, setSearchedUsers] = React.useState(null)
+    const [searchedUsers, setSearchedUsers] = React.useState([])
+    const entireSearchBar = React.useRef(null)
+
+    const searchRef = React.useRef(null)
 
     const typingSearchDebounce = React.useMemo(() => memoize(
         debounce((e) => {
             UserService.listUsers(e.target.value).then((res) => {
                 setSearchedUsers(res.data)
+                setAnchorElSearch(entireSearchBar.current)
                 console.log(res.data)
             })
         }, 1000)
-    ), [])
+    ), [setSearchedUsers, entireSearchBar])
+
+    const handleCloseSearch = () => {
+        setAnchorElSearch(null);
+    };
 
     const handleOpenUserMenu = (event) => {
         setAnchorElUser(event.currentTarget);
@@ -131,16 +140,62 @@ const Header = (props) => {
                         </Box>
                         <Box sx={{ flexGrow: 1 }} />
                         <Box sx={{ flexGrow: 1 }}>
-                            <Search>
+                            <Search ref={entireSearchBar}>
                                 <SearchIconWrapper>
                                     <SearchIcon />
                                 </SearchIconWrapper>
                                 <StyledInputBase
+                                    ref={searchRef}
                                     placeholder="Search user..."
                                     inputProps={{ 'aria-label': 'search' }}
                                     onChange={typingSearchDebounce}
                                 />
                             </Search>
+                            <Popover
+                                open={Boolean(anchorElSearch)}
+                                anchorEl={anchorElSearch}
+                                onClose={handleCloseSearch}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'left',
+                                }}
+                                PaperProps={{
+                                    style: {
+                                        width: `${entireSearchBar.current == null ? 'auto' : entireSearchBar.current.offsetWidth + 'px'}`
+                                    },
+                                }}
+                            >
+                                {searchedUsers.length === 0
+                                    ?
+                                    <Typography sx={{ p: 2 }}>
+                                        No matches found
+                                    </Typography>
+                                    :
+                                    <List style={{ overflow: 'auto' }} >
+                                        {
+                                            searchedUsers.map((user) => {
+                                                return (
+                                                    <ListItem key={user.username}>
+                                                        <ListItemAvatar>
+                                                            <Avatar
+                                                                imgProps={{ referrerPolicy: "no-referrer" }}
+                                                                alt={user.firstName + ' ' + user.lastName}
+                                                                src={user.attributes.picture[0]}
+                                                            />
+                                                        </ListItemAvatar>
+                                                        <ListItemText
+                                                            sx={{ overflowWrap: 'break-word', wordWrap: 'break-word' }}
+                                                            primary={user.username}
+                                                        />
+                                                    </ListItem>
+                                                )
+                                            })
+                                        }
+                                    </List>
+
+
+                                }
+                            </Popover>
                         </Box>
                         <Box sx={{ flexGrow: 1 }} />
                         <Box sx={{ flexGrow: 0 }}>
