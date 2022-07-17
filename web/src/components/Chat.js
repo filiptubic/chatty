@@ -6,8 +6,10 @@ import { TextField, Container, Typography, Zoom } from "@mui/material";
 import Grid from '@mui/material/Grid';
 import { Box } from "@mui/system";
 import debounce from "lodash/debounce";
+import { useParams } from "react-router-dom";
 
 const Chat = () => {
+    const params = useParams();
     const [message, setMessage] = React.useState('')
     const [messages, setMessages] = React.useState([])
     const [typing, setTyping] = React.useState('')
@@ -29,7 +31,8 @@ const Chat = () => {
         }))
     }, 100))
 
-    var ws = ChattyService.joinChat('412bbd27-05f3-11ed-82e4-fc3497a34a5a')
+    console.log(params.chatId)
+    var ws = ChattyService.joinChat(params.chatId)
 
     ws.onopen = (event) => {
         ws.send(JSON.stringify({

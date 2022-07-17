@@ -21,6 +21,10 @@ const configure = () => {
   });
 };
 
+const createChat = (userId) => {
+  return chattyClient.post("/v1/create-chat/" + userId)
+}
+
 const joinChat = (chatId) => {
   if (wsConn == null) {
     wsConn = new WebSocket('ws://localhost:1234/ws/' + chatId);
@@ -30,7 +34,8 @@ const joinChat = (chatId) => {
 
 const ChattyService = {
   configure,
-  joinChat
+  joinChat,
+  createChat
 };
 
 export default ChattyService;

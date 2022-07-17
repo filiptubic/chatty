@@ -1,6 +1,7 @@
 package api
 
 import (
+	"chatty/middleware"
 	"chatty/pkg/client/keycloak"
 	"context"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 type Service interface {
 	HandleChat(ctx context.Context, ws *websocket.Conn, chatID uuid.UUID)
 	ListUsers(firstName, lastName, email, search string) (keycloak.UserList, error)
+	CreateChat(current, other uuid.UUID) (uuid.UUID, error)
 }
 
 type ChattyHandler struct {
@@ -24,6 +26,26 @@ func NewChattyHandler(service Service) *ChattyHandler {
 	return &ChattyHandler{
 		service: service,
 	}
+}
+
+func (h *ChattyHandler) createChat(ctx *gin.Context) {
+	// TODO
+	currentUser, _ := ctx.Get(middleware.CtxUserKey)
+	otherUserIDParam, _ := ctx.Params.Get("userID")
+
+	currentUserID := currentUser.(keycloak.User)
+	otherUserID, err := uuid.Parse(otherUserIDParam)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	chatID, err := h.service.CreateChat(currentUserID.ID, otherUserID)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	ctx.JSON(http.StatusOK, chatID)
 }
 
 func (h *ChattyHandler) handleChat(ctx *gin.Context) {

@@ -74,7 +74,7 @@ func (k *Keycloak) GetToken() (*Token, error) {
 	return &token, nil
 }
 
-func (k *Keycloak) ListUsers(firstName, lastName, email, search string) (UserList, error) {
+func (k *Keycloak) ListUsers(firstName, lastName, email, search, username string) (UserList, error) {
 	token, err := k.GetToken()
 	if err != nil {
 		return nil, err
@@ -101,6 +101,9 @@ func (k *Keycloak) ListUsers(firstName, lastName, email, search string) (UserLis
 	if search != "" {
 		q.Add("search", search)
 	}
+	if username != "" {
+		q.Add("username", username)
+	}
 	req.URL.RawQuery = q.Encode()
 
 	auth := strings.Join([]string{"Bearer", token.AccessToken}, " ")
@@ -112,7 +115,7 @@ func (k *Keycloak) ListUsers(firstName, lastName, email, search string) (UserLis
 	}
 
 	var userListResponse UserList
-	// var asd interface{}
+
 	err = json.NewDecoder(resp.Body).Decode(&userListResponse)
 	if err != nil {
 		return nil, err

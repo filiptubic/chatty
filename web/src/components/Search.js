@@ -4,7 +4,8 @@ import { Avatar,InputBase, List, ListItem, ListItemAvatar, ListItemText, Popover
 import SearchIcon from '@mui/icons-material/Search';
 import { debounce, memoize } from 'lodash';
 import { alpha, styled } from '@mui/material/styles';
-
+import ChattyService from '../services/ChattyService'
+import { useNavigate } from "react-router-dom";
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -50,6 +51,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 
 const SearchUsers = () => {
+    const navigate = useNavigate();
     const entireSearchBar = React.useRef(null)
     const searchRef = React.useRef(null)
     const [anchorElSearch, setAnchorElSearch] = React.useState(null)
@@ -69,6 +71,14 @@ const SearchUsers = () => {
     const handleCloseSearch = () => {
         setAnchorElSearch(null);
     };
+
+    const handleOnClickUser = (user) => {
+        ChattyService.createChat(user.id).then((res)=>{
+            console.log(res)
+            navigate(`/${res.data}`);
+        })
+        handleCloseSearch()
+    }
 
     return (
         <div>
@@ -107,7 +117,7 @@ const SearchUsers = () => {
                         {
                             searchedUsers.map((user) => {
                                 return (
-                                    <ListItem key={user.username}>
+                                    <ListItem key={user.username} onClick={() => handleOnClickUser(user)}>
                                         <ListItemAvatar>
                                             <Avatar
                                                 imgProps={{ referrerPolicy: "no-referrer" }}

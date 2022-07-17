@@ -20,29 +20,29 @@ function App() {
 
   return (
     <div className="App">
-      <Box sx={{ display: 'flex' }}>
-        <Header
-          open={open}
-          setOpen={setOpen}
-          handleDrawerClose={handleDrawerClose}
-          sx={{ flexGrow: 1 }}
-        />
-        <Sidebar
-          sx={{ flexGrow: 1 }}
-          open={open}
-          setOpen={setOpen}
-          handleDrawerClose={handleDrawerClose}
-        />
-        <Box sx={{ flexGrow: 1 }}>
-          <DrawerHeader />
-          <BrowserRouter>
+      <DrawerHeader />
+      <BrowserRouter>
+        <Box sx={{ display: 'flex' }}>
+          <Header
+            open={open}
+            setOpen={setOpen}
+            handleDrawerClose={handleDrawerClose}
+            sx={{ flexGrow: 1 }}
+          />
+          <Sidebar
+            sx={{ flexGrow: 1 }}
+            open={open}
+            setOpen={setOpen}
+            handleDrawerClose={handleDrawerClose}
+          />
+          <Box sx={{ flexGrow: 1 }}>
             <Routes>
-              <Route index element={<Chat />} />
-              <Route path="/test" element={<div></div>} />
+              <Route path="/:chatId" index element={<Chat />} />
+              <Route index element={<div></div>} />
             </Routes>
-          </BrowserRouter>
+          </Box>
         </Box>
-      </Box>
+      </BrowserRouter>
     </div>
   );
 }

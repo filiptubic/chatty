@@ -33,9 +33,9 @@ func Mount(cfg *config.Config) (*gin.Engine, error) {
 	engine.Use(middleware.CorsMiddleware())
 
 	v1 := engine.Group("/v1")
-	v1.Use(middleware.AuthMiddleware(authenticator))
+	v1.Use(middleware.AuthMiddleware(authenticator, keycloak))
 	v1.GET("/users", chattyHandler.listUsers)
-
+	v1.POST("/create-chat/:userID", chattyHandler.createChat)
 	engine.GET("/ws/:chatID", chattyHandler.handleChat)
 
 	return engine, nil

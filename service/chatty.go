@@ -17,6 +17,8 @@ import (
 var (
 	m        sync.Mutex
 	channels = make(map[uuid.UUID]map[*websocket.Conn]struct{})
+	// TODO
+	directChannel = make(map[uuid.UUID]map[uuid.UUID]uuid.UUID)
 )
 
 type Repository interface {
@@ -29,7 +31,7 @@ type Authenticator interface {
 }
 
 type UserClient interface {
-	ListUsers(firstName, lastName, email, search string) (keycloak.UserList, error)
+	ListUsers(firstName, lastName, email, search, username string) (keycloak.UserList, error)
 }
 
 type ChattyService struct {
@@ -47,7 +49,45 @@ func NewChattyService(auth Authenticator, repo Repository, users UserClient) (*C
 }
 
 func (s *ChattyService) ListUsers(firstName, lastName, email, search string) (keycloak.UserList, error) {
-	return s.users.ListUsers(firstName, lastName, email, search)
+	return s.users.ListUsers(firstName, lastName, email, search, "")
+}
+
+func (s *ChattyService) createChat(user1, user2 uuid.UUID, newChatID uuid.UUID) (uuid.UUID, error) {
+	// TODO mutex
+
+	chats, ok := directChannel[user1]
+	if !ok {
+		chats = make(map[uuid.UUID]uuid.UUID)
+		directChannel[user1] = chats
+	}
+
+	chatID, ok := chats[user2]
+	if !ok {
+		chatID = newChatID
+		chats[user2] = chatID
+	}
+
+	return chatID, nil
+}
+
+func (s *ChattyService) CreateChat(current, other uuid.UUID) (uuid.UUID, error) {
+	newChatID := uuid.New()
+
+	chatID1, err := s.createChat(current, other, newChatID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	chatID2, err := s.createChat(other, current, newChatID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	if chatID1 != chatID2 {
+		return uuid.UUID{}, errors.New("different chat IDs")
+	}
+
+	return chatID1, nil
 }
 
 func (s *ChattyService) JoinChat(ws *websocket.Conn, chatID uuid.UUID) {
@@ -68,6 +108,7 @@ func (s *ChattyService) JoinChat(ws *websocket.Conn, chatID uuid.UUID) {
 			}
 		}
 	}()
+	log.Info().Str("chatID", chatID.String()).Msg("connected to chat")
 }
 
 func (s *ChattyService) ExitChat(ws *websocket.Conn, chatID uuid.UUID) {

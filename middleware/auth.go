@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"chatty/pkg/auth"
+	"chatty/pkg/client/keycloak"
 	"net/http"
 	"strings"
 
@@ -13,7 +14,7 @@ const (
 	CtxUserKey          = "user"
 )
 
-func AuthMiddleware(auth *auth.Authenticator) gin.HandlerFunc {
+func AuthMiddleware(auth *auth.Authenticator, keycloak *keycloak.Keycloak) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		r := ctx.Request
 
@@ -44,7 +45,17 @@ func AuthMiddleware(auth *auth.Authenticator) gin.HandlerFunc {
 			ctx.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
-		ctx.Set(CtxUserKey, claims)
+		username, ok := claims["preferred_username"]
+		if !ok {
+			ctx.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		users, err := keycloak.ListUsers("", "", "", "", username.(string))
+		if err != nil {
+			ctx.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		ctx.Set(CtxUserKey, users[0])
 
 		ctx.Next()
 	}
