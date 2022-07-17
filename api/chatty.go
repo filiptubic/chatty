@@ -12,7 +12,7 @@ import (
 
 type Service interface {
 	HandleWS(ctx context.Context, ws *websocket.Conn)
-	ListUsers(firstName, lastName, email string) (keycloak.UserList, error)
+	ListUsers(firstName, lastName, email, search string) (keycloak.UserList, error)
 }
 
 type ChattyHandler struct {
@@ -36,7 +36,8 @@ func (h *ChattyHandler) listUsers(ctx *gin.Context) {
 	email := ctx.Query("email")
 	firstName := ctx.Query("first_name")
 	lastName := ctx.Query("last_name")
-	users, err := h.service.ListUsers(firstName, lastName, email)
+	search := ctx.Query("search")
+	users, err := h.service.ListUsers(firstName, lastName, email, search)
 	if err != nil {
 		log.Error().
 			Err(err).

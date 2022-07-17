@@ -67,7 +67,7 @@ func (k *Keycloak) GetToken() (*Token, error) {
 	return &token, nil
 }
 
-func (k *Keycloak) ListUsers(firstName, lastName, email string) (UserList, error) {
+func (k *Keycloak) ListUsers(firstName, lastName, email, search string) (UserList, error) {
 	token, err := k.GetToken()
 	if err != nil {
 		return nil, err
@@ -90,6 +90,9 @@ func (k *Keycloak) ListUsers(firstName, lastName, email string) (UserList, error
 	}
 	if email != "" {
 		q.Add("email", email)
+	}
+	if search != "" {
+		q.Add("search", search)
 	}
 	req.URL.RawQuery = q.Encode()
 

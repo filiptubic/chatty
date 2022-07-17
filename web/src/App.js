@@ -4,10 +4,8 @@ import './App.css';
 import Chat from './components/Chat';
 import Header from './components/Header';
 import {Sidebar, DrawerHeader} from './components/Sidebar'
-import UserService from "./services/UserService";
 
 function App() {
-  UserService.listUsers()
 
   const [open, setOpen] = React.useState(false);
 
