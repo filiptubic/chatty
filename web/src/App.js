@@ -37,8 +37,8 @@ function App() {
           />
           <Box sx={{ flexGrow: 1 }}>
             <Routes>
-              <Route path="/:chatId" index element={<Chat />} />
-              <Route index element={<div></div>} />
+              <Route path="/:chatId" index element={ <Chat /> }/>
+              <Route path="/" element={<div></div>} />
             </Routes>
           </Box>
         </Box>

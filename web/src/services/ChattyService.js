@@ -26,9 +26,7 @@ const createChat = (userId) => {
 }
 
 const joinChat = (chatId) => {
-  if (wsConn == null) {
-    wsConn = new WebSocket('ws://localhost:1234/ws/' + chatId);
-  }
+  wsConn = new WebSocket('ws://localhost:1234/ws/' + chatId);
   return wsConn
 }
 

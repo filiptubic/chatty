@@ -18,10 +18,18 @@ const Chat = () => {
         setTyping('')
         setTypingShowed(false)
     }, 500))
+    const ws = React.useRef(null)
 
+    React.useEffect(()=>{
+        setMessages([])
+        setMessage('')
+        setTyping('')
+        setTypingShowed(false)
+        ws.current = ChattyService.joinChat(params.chatId)
+    },[params.chatId])
 
     const typingSendDebounce = React.useRef(debounce(() => {
-        ws.send(JSON.stringify({
+        ws.current.send(JSON.stringify({
             event: "typing",
             sender: {
                 picture: UserService.getParsedToken().picture,
@@ -31,32 +39,33 @@ const Chat = () => {
         }))
     }, 100))
 
-    console.log(params.chatId)
-    var ws = ChattyService.joinChat(params.chatId)
-
-    ws.onopen = (event) => {
-        ws.send(JSON.stringify({
-            event: "auth",
-            data: UserService.getToken()
-        }))
-    }
-    ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data)
-        console.log(msg)
-        if (msg.event === 'message') {
-            setMessages((oldMsgs) => {
-                return [...oldMsgs, msg]
-            })
-        } else if (msg.event === 'typing') {
-            typingRecvDebounce.current()
-            if (typingShowed) return
-            if (msg.sender.username === UserService.getParsedToken().preferred_username) return
-
-            setTyping(msg.sender.name + ' typing...')
-            setTypingShowed(true)
+    if (ws.current != null) {
+        ws.current.onopen = (event) => {
+            ws.current.send(JSON.stringify({
+                event: "auth",
+                data: UserService.getToken()
+            }))
         }
     }
 
+    if (ws.current != null) {
+        ws.current.onmessage = (event) => {
+            const msg = JSON.parse(event.data)
+            console.log(msg)
+            if (msg.event === 'message') {
+                setMessages((oldMsgs) => {
+                    return [...oldMsgs, msg]
+                })
+            } else if (msg.event === 'typing') {
+                typingRecvDebounce.current()
+                if (typingShowed) return
+                if (msg.sender.username === UserService.getParsedToken().preferred_username) return
+
+                setTyping(msg.sender.name + ' typing...')
+                setTypingShowed(true)
+            }
+        }
+    }
 
     const clearMessage = () => {
         setMessage("")
@@ -73,7 +82,7 @@ const Chat = () => {
         }
         if (msg.data === '') return
 
-        ws.send(JSON.stringify(msg))
+        ws.current.send(JSON.stringify(msg))
         clearMessage()
     }
 
